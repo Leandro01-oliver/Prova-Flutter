@@ -19,7 +19,13 @@ class _ConversaoPageState extends State<ConversaoPage> {
 
   String? _selectedCoinOne;
 
-  List<String> coinOne = ['USD', 'EUR'];
+  List<String> coinOne = [
+                          'USD - dólar', 
+                          'EUR - euro',
+                          'GBP - libra esterlina',
+                          'JPY - iene',
+                          'ARS - peso argentino',
+                          'MXN - peso mexicano'];
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,7 @@ class _ConversaoPageState extends State<ConversaoPage> {
               return const Center(child: CircularProgressIndicator());
             } else if (state is LoadedState) {
               // Exibir a lista de Todos
-              var valorCalculado = double.parse(state.coins[0].price_balance) *
+              var valorCalculado = state.coins[0].price_balance *
                   double.parse(valueController.text);
               return SafeArea(
                 child: Column(
@@ -46,7 +52,6 @@ class _ConversaoPageState extends State<ConversaoPage> {
                     SizedBox(height: 20,),
                     Container(
                         child: Text(
-                      "Real -> " +
                           NumberFormat("#,##0.00", "pt_BR")
                               .format(valorCalculado.abs()),
                       style: TextStyle(fontSize: 20),
@@ -71,30 +76,9 @@ class _ConversaoPageState extends State<ConversaoPage> {
 
   Widget _buildFormCoin({required CoinCubit coinCubit}) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          TextField(
-            keyboardType: TextInputType.number,
-            controller: valueController,
-            inputFormatters: [
-              FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
-            ],
-            decoration: const InputDecoration(
-              focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 1)),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 1)),
-              floatingLabelAlignment: FloatingLabelAlignment.center,
-              labelText: 'Valor da conversão',
-              alignLabelWithHint: true,
-              hintStyle: TextStyle(color: Colors.black),
-              labelStyle: TextStyle(fontSize: 14.0, color: Colors.black),
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
           DropdownButton<String>(
             isExpanded: true,
             value: _selectedCoinOne,
@@ -111,11 +95,38 @@ class _ConversaoPageState extends State<ConversaoPage> {
               );
             }).toList(),
           ),
+          const SizedBox(
+            height: 20,
+          ),
+          _selectedCoinOne != null ?
+          TextField(
+            keyboardType: TextInputType.number,
+            controller: valueController,
+            inputFormatters: [
+              FilteringTextInputFormatter(RegExp("[0-9]"), allow: true)
+            ],
+            decoration: const InputDecoration(
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 1)),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 1)),
+              floatingLabelAlignment: FloatingLabelAlignment.center,
+              labelText: 'Valor da conversão para Real',
+              alignLabelWithHint: true,
+              hintStyle: TextStyle(color: Colors.black),
+              labelStyle: TextStyle(fontSize: 14.0, color: Colors.black),
+            ),
+          )
+          :
+          const SizedBox(),
+          const SizedBox(
+            height: 20,
+          ),
           ElevatedButton(
               onPressed: () {
                 var valor = int.parse(valueController.text);
                 coinCubit.getCoinConversion(
-                    coin: _selectedCoinOne!, price: valor);
+                    coin: _selectedCoinOne!.substring(0,3), price: valor);
               },
               child: const Text("Converter"))
         ],

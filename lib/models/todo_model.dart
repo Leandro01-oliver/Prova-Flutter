@@ -1,7 +1,8 @@
 class TodoModel{
   final int? id;
-  late final String title;
-  late final String description;
+  final String title;
+  final String description;
+  final bool isCheck;
 
-  TodoModel( this.id,this.title, this.description);
+  TodoModel( this.id,this.title, this.description, this.isCheck);
 }

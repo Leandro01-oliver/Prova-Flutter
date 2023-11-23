@@ -22,7 +22,7 @@ class _TodoPageState extends State<TodoPage> {
       isSearch = !isSearch;
     });
   }
-
+  
   void _showAddTodoDialog({required TodoCubit todoCubit}) {
     TextEditingController controllerTitle = TextEditingController();
     TextEditingController controllerDescricao = TextEditingController();
@@ -53,7 +53,7 @@ class _TodoPageState extends State<TodoPage> {
               onPressed: () {
                 todoCubit.postTodo(
                   todoData: TodoModel(
-                      null, controllerTitle.text, controllerDescricao.text),
+                      null, controllerTitle.text, controllerDescricao.text,false),
                 );
                 Navigator.of(context).pop();
               },
@@ -73,9 +73,8 @@ class _TodoPageState extends State<TodoPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-
-      controllerTitle.text = todoModel.title;
-      controllerDescricao.text = todoModel.description;
+        controllerTitle.text = todoModel.title;
+        controllerDescricao.text = todoModel.description;
 
         return AlertDialog(
           title: const Text('Editar Todo'),
@@ -101,7 +100,7 @@ class _TodoPageState extends State<TodoPage> {
               onPressed: () {
                 todoCubit.editarTodo(
                   todoData: TodoModel(todoModel.id, controllerTitle.text,
-                      controllerDescricao.text),
+                      controllerDescricao.text,todoModel.isCheck),
                 );
                 Navigator.of(context).pop();
               },
@@ -112,6 +111,7 @@ class _TodoPageState extends State<TodoPage> {
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -165,13 +165,15 @@ class _TodoPageState extends State<TodoPage> {
                                       width: MediaQuery.of(context).size.width *
                                           .78,
                                       child: Stack(
-                                        alignment: Alignment
-                                            .centerRight, // Alinhar o ícone à direita
+                                        alignment: Alignment.centerRight,
                                         children: [
                                           TextField(
                                             controller: searchController,
-                                            onEditingComplete: (){
-                                              context.read<TodoCubit>().getTodoByName(searchController.text);
+                                            onEditingComplete: () {
+                                              context
+                                                  .read<TodoCubit>()
+                                                  .getTodoByName(
+                                                      searchController.text);
                                             },
                                             decoration: const InputDecoration(
                                               border: InputBorder.none,
@@ -188,7 +190,10 @@ class _TodoPageState extends State<TodoPage> {
                                             right: 2,
                                             child: GestureDetector(
                                               onTap: () {
-                                                  context.read<TodoCubit>().getTodoByName(searchController.text);
+                                                context
+                                                    .read<TodoCubit>()
+                                                    .getTodoByName(
+                                                        searchController.text);
                                               },
                                               child: const Icon(Icons.search),
                                             ),
@@ -253,60 +258,56 @@ class _TodoPageState extends State<TodoPage> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                         child: ListView.builder(
-                          itemCount: state.todos!.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            // Criar um card para cada Todo na lista
-                            TodoModel todo = state.todos![index];
-                            return Column(
-                              children: [
-                                Card(
-                                    child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              context
-                                                  .read<TodoCubit>()
-                                                  .deleteTodo(id: todo.id!);
-                                            },
-                                            child: const Icon(Icons.delete),
+                            itemCount: state.todos!.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              TodoModel todo = state.todos![index];
+                              return Dismissible(
+                                key: ObjectKey(todo),
+                                onDismissed: (DismissDirection direction) {
+                                  if (direction == DismissDirection.endToStart) {
+                                       _showEditeTodoDialog(
+                                                        todoCubit: context
+                                                            .read<TodoCubit>(),
+                                                        todoModel: TodoModel(
+                                                            todo.id,
+                                                            todo.title,
+                                                            todo.description,
+                                                            todo.isCheck
+                                                            ));
+                                  }else{
+                                       context.read<TodoCubit>().deleteTodo(id: todo.id!);
+                                  }
+                                },
+                                child: Column(
+                                  children: [
+                                    Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(children: [
+                                              // crie um checkbox aqui chatgpt que interaja com a lista de todoList
+                                            ListTile(
+                                                leading: Checkbox(
+                                                value: todo.isCheck,
+                                                onChanged: (bool? value) { 
+                                                  context.read<TodoCubit>().updateTodoStatus(
+                                                        todo.id!,
+                                                        value ?? false,
+                                                      );
+                                                },
+                                              ),
+                                                title: Text(todo.title),
+                                                subtitle: Text(todo.description),
+                                              ),
+                                          ],)
                                           ),
-                                          const SizedBox(
-                                            width: 15,
-                                          ),
-                                          GestureDetector(
-                                            onTap: () {
-                                              _showEditeTodoDialog(
-                                                  todoCubit:
-                                                      context.read<TodoCubit>(),
-                                                  todoModel: TodoModel(
-                                                      todo.id,
-                                                      todo.title,
-                                                      todo.description));
-                                            },
-                                            child: const Icon(Icons.edit),
-                                          ),
-                                        ],
-                                      ),
-                                      ListTile(
-                                        title: Text(todo.title),
-                                        subtitle: Text(todo.description),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                                const SizedBox(
-                                  height: 10,
+                                        ),
+                                    const SizedBox(
+                                      height: 10,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            );
-                          },
-                        ),
+                              );
+                            }),
                       ),
                     )
                   ],

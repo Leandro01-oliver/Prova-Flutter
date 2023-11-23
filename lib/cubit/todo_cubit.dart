@@ -30,6 +30,17 @@ class TodoCubit extends Cubit<TodoState> {
     }
   }
 
+  void updateTodoStatus(int id, bool isCompleted) async {
+    try {
+      emit(LoadingState());
+      await repository.updateTodoStatus(id: id, isCompleted: isCompleted);
+      final List<TodoModel> todos = await repository.getTodoAll();
+      emit(LoadedState(todos));
+    } catch (e) {
+      emit(ErrorState());
+    }
+  }
+
   void postTodo({required TodoModel todoData}) async {
       try {
         emit(LoadingState());
